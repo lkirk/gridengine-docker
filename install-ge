@@ -1,0 +1,17 @@
+#!/bin/sh
+
+set -e
+set -u
+
+export SGE_ROOT=/ge
+mkdir $SGE_ROOT
+./scripts/distinst -all -local -noexit lx-amd64
+
+cd $SGE_ROOT
+cp util/arch_variables util/arch_variables.bak
+sed -e's/ lx\*|ulx\*)/ *lx*|*ulx*)/' util/arch_variables.bak > util/arch_variables
+
+cp util/arch util/arch.bak
+echo -e '#!/bin/sh\necho lx-amd64' > util/arch
+
+cp util/install_modules/inst_common.sh util/install_modules/inst_common.sh.bak

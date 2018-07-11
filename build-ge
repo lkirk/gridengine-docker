@@ -1,0 +1,39 @@
+#!/bin/sh
+
+set -e
+set -u
+
+# git clone https://github.com/gridengine/gridengine
+for d in common/common_dependencies security/krb/krb_dependencies \
+	 security/gss/gss_dependencies libs/uti/uti_dependencies \
+	 libs/cull/cull_dependencies libs/comm/lists/commlistslib_dependencies \
+	 libs/comm/examples/commexamples_dependencies libs/comm/commlib_dependencies \
+	 libs/sgeobj/sgeobj_dependencies libs/gdi/gdi_dependencies \
+	 libs/evc/evc_dependencies libs/evm/evm_dependencies \
+	 libs/mir/mir_dependencies libs/sched/sched_dependencies \
+	 libs/spool/spool_dependencies libs/spool/loader/spoolloader_dependencies \
+	 libs/spool/berkeleydb/spoolb_dependencies libs/spool/classic/spoolc_old_dependencies \
+	 libs/spool/dynamic/spoold_dependencies libs/spool/flatfile/spoolc_dependencies \
+	 libs/japi/japi_dependencies libs/juti/juti_dependencies \
+	 libs/ijs/ijs_dependencies security/coshepherd/coshepherd_dependencies \
+	 daemons/common/common_dependencies daemons/execd/execd_dependencies \
+	 daemons/qmaster/qmaster_dependencies daemons/shadowd/shadowd_dependencies \
+	 daemons/shepherd/shepherd_dependencies clients/common/common_dependencies \
+	 clients/qacct/qacct_dependencies clients/qalter/qalter_dependencies \
+	 clients/qconf/qconf_dependencies clients/qdel/qdel_dependencies \
+	 clients/qhost/qhost_dependencies clients/qquota/qquota_dependencies \
+	 clients/qmod/qmod_dependencies clients/qrsh/qrsh_dependencies \
+	 clients/qsh/qsh_dependencies clients/qstat/qstat_dependencies \
+	 clients/qsub/qsub_dependencies clients/qevent/qevent_dependencies \
+	 clients/qrsub/qrsub_dependencies clients/qrdel/qrdel_dependencies \
+	 clients/qrstat/qrstat_dependencies clients/showq/showq_dependencies \
+	 utilbin/utilbin_dependencies; do
+    touch $d
+done
+
+sed -e's/-Werror //g' aimk > aimk.new
+chmod +x aimk.new
+tr '\n' '\r' < scripts/compilearch | sed -re's/echo cannot compile - no mapping for architecture .+ defined yet\r      exit 1/BUILDARCH=LINUXAMD64\n      COMPILE_ARCH=LINUXAMD64\n      TARGET_BITS=TARGET_64BIT/' | tr '\r' '\n' > scripts/compilearch.tmp
+mv scripts/compilearch.tmp scripts/compilearch
+chmod +x scripts/compilearch
+./aimk.new -no-java -no-jni -no-secure -spool-classic -no-dump -no-qmon -no-qmake -no-plpa -no-qtcsh
