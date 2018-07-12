@@ -18,10 +18,13 @@ RUN apt-get update && \
 	&& rm -rf /var/lib/apt/lists/* ;\
 	/tmp/install-go
 
+#TODO: don't use global gopath for user pkgs
 RUN set -e ;\
     useradd --create-home --shell /bin/bash user ;\
     echo '[[ -f /ge/default/common/settings.sh ]] \
     && source /ge/default/common/settings.sh' >> /home/user/.bashrc ;\
+    echo "export GOPATH=$GOPATH" >> /home/user/.bashrc ;\
+    echo 'export PATH="/usr/local/go/bin:$PATH"' >> /home/user/.bashrc ;\
     su --preserve-environment -c"export PATH=$PATH"'; HOME=~user ;\
     go get github.com/lloydkirk/gflow\
        	   github.com/golang/dep/cmd/dep;\
