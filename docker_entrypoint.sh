@@ -1,20 +1,17 @@
-#!/bin/bash
-# set -eo pipefail
+#!/bin/sh
 
-source /usr/share/gridengine/default/common/settings.sh
+. /ge/default/common/settings.sh
 
-echo "$HOSTNAME" > /usr/share/gridengine/default/common/act_qmaster
+echo "$HOSTNAME" > /ge/default/common/act_qmaster
 echo "domain $HOSTNAME" >> /etc/resolv.conf
-sed -i -e"s/docker/$HOSTNAME/" debug.queue
+sed -i -e"s/docker/$HOSTNAME/" /ge/config/debug.queue
 
-/usr/share/gridengine/default/common/sgemaster start
-/usr/share/gridengine/default/common/sgeexecd start
+/ge/default/common/sgemaster start
+/ge/default/common/sgeexecd start
 
 qconf -mattr "queue" "hostlist" "$HOSTNAME" "debug"
 qconf -as $HOSTNAME
 
 export HOME=/home/user
 export PATH="/usr/local/go/bin:$PATH"
-su -m root
-
-
+su --login user
