@@ -2,16 +2,25 @@
 
 set -e
 set -u
+set -x
 
 export SGE_ROOT=/ge
-mkdir $SGE_ROOT
-./scripts/distinst -all -local -noexit lx-amd64
+
+echo 'y' | ./scripts/distinst -all -local -noexit lx-amd64
 
 cd $SGE_ROOT
-cp util/arch_variables util/arch_variables.bak
-sed -e's/ lx\*|ulx\*)/ *lx*|*ulx*)/' util/arch_variables.bak > util/arch_variables
-
-cp util/arch util/arch.bak
-echo -e '#!/bin/sh\necho lx-amd64' > util/arch
 
 cp util/install_modules/inst_common.sh util/install_modules/inst_common.sh.bak
+sed -e'379s/ qmon//' -e'379s/ qmake//' -e'380s/ qtcsh//' -i util/install_modules/inst_common.sh
+
+echo "$(grep "$HOSTNAME" /etc/hosts | awk '{print $1}') docker" >> /etc/hosts
+echo 'domain docker' >> /etc/resolv.conf
+
+./install_qmaster -x -m -auto config/docker_configuration.conf || true
+
+echo 'docker' > /ge/default/common/act_qmaster
+
+MANPATH=none . /ge/default/common/settings.sh
+qconf -Ahgrp /ge/config/hostgroup.conf
+qconf -Aq /ge/config/debug.queue
+qconf -Mq /ge/config/debug.queue

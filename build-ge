@@ -3,7 +3,7 @@
 set -e
 set -u
 
-# git clone https://github.com/gridengine/gridengine
+# TODO: Some makefile issue I can't work out. This hack circumvents the issue.
 for d in common/common_dependencies security/krb/krb_dependencies \
 	 security/gss/gss_dependencies libs/uti/uti_dependencies \
 	 libs/cull/cull_dependencies libs/comm/lists/commlistslib_dependencies \
@@ -31,9 +31,15 @@ for d in common/common_dependencies security/krb/krb_dependencies \
     touch $d
 done
 
-sed -e's/-Werror //g' aimk > aimk.new
-chmod +x aimk.new
-tr '\n' '\r' < scripts/compilearch | sed -re's/echo cannot compile - no mapping for architecture .+ defined yet\r      exit 1/BUILDARCH=LINUXAMD64\n      COMPILE_ARCH=LINUXAMD64\n      TARGET_BITS=TARGET_64BIT/' | tr '\r' '\n' > scripts/compilearch.tmp
-mv scripts/compilearch.tmp scripts/compilearch
-chmod +x scripts/compilearch
-./aimk.new -no-java -no-jni -no-secure -spool-classic -no-dump -no-qmon -no-qmake -no-plpa -no-qtcsh
+# architecture detection does not work for modern linux boxen
+# TODO: revisit when cross platform builds are supported
+cp dist/util/arch dist/util/arch.bak
+echo '#!/bin/sh' > dist/util/arch
+echo 'echo lx-amd64' >> dist/util/arch
+
+# do not fail on compile warnings (TODO: ?)
+cp aimk aimk.bak
+sed -i -e's/-Werror //g' aimk
+
+# build gridengine
+./aimk -no-java -no-jni -no-secure -spool-classic -no-dump -no-qmon -no-qmake -no-plpa -no-qtcsh
